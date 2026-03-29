@@ -136,22 +136,24 @@ rm intro_reenc.mp4 notebooklm_trimmed.mp4 concat_list.txt
 - Use meaningful content words only (nouns, verbs, adjectives)
 - Avoid filler words like "A", "The", "More", "Let's"
 - Extract from subtitle content, 1 second ahead of spoken timing
-- Keep last 2 phrases visible, fade out older ones
+- All phrases stay visible on screen, stacked vertically
 - Example: "ESG", "Environmental", "Social", "Governance", "Investing", "Confusing", "Compass"
-
-### Final Title
-- Derive from subtitle filename (e.g., "A Compass Without Direction")
-- Clear all previous phrases before showing
-- Write stroke by stroke over 2 seconds
-- Hold for 2 seconds at end
-- Use prominent color (RED) and larger font
 
 ### Visual Style
 - White background for clean VideoScribe look
 - Vibrant cycling colors: YELLOW, RED, BLUE, GREEN, ORANGE, PURPLE, TEAL, PINK, GOLD
 - Bold weight fonts
-- Image on left (70% height), text on right
+- Image on left (80% height), text on right
 - Stroke-by-stroke writing animation (Write effect)
+- All key phrases stay visible on screen (stacked vertically with 0.75 spacing)
+
+### Final Title
+- Derive from subtitle filename (e.g., "ESG: A Compass Without Direction")
+- Three lines: "ESG:" (GREEN, bold, 68pt), "A Compass" (RED, italic, 58pt), "Without Direction" (PURPLE, bold, 52pt - smaller for longer text)
+- Each line has different font size and position offset for dynamic look
+- Clear all previous phrases before showing
+- Write stroke by stroke over 2 seconds
+- Hold for 2 seconds at end
 
 ---
 

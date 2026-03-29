@@ -14,8 +14,9 @@ DESIGN PRINCIPLES:
 - White background for clean VideoScribe aesthetic
 - Vibrant cycling colors for each phrase
 - Meaningful content words only (no filler words)
-- Keep last 2 phrases visible, fade out older ones
-- Final title derived from subtitle filename
+- All phrases stay visible on screen (stacked vertically)
+- Final title includes "ESG:" at the top with three lines total
+- Each title line has different color (GREEN, RED, PURPLE), font style, and position offset
 
 Usage:
     manim -pql esg_videoscribe.py ESGIntro   # preview
@@ -83,9 +84,9 @@ class ESGIntro(Scene):
         
         # === IMAGE ANIMATION (0-6s) ===
         
-        # Load image at 70% height
+        # Load image at 80% height (slightly larger)
         img = ImageMobject(IMAGE_PATH)
-        img.height = config.frame_height * 0.7
+        img.height = config.frame_height * 0.8
         
         # Start position: bottom-left corner (off-screen)
         start_pos = LEFT * 5 + DOWN * 4
@@ -120,15 +121,11 @@ class ESGIntro(Scene):
         # === TEXT ANIMATION (6-26s) ===
         
         # Key phrases: meaningful content words only, 1s ahead of subtitle timing
-        # Avoid filler words like "A", "The", "More", "Let's"
         key_phrases = [
             {"text": "ESG", "start": 6.0, "duration": 1.5},
             {"text": "Environmental", "start": 7.8, "duration": 1.3},
             {"text": "Social", "start": 9.5, "duration": 1.2},
             {"text": "Governance", "start": 11.0, "duration": 1.5},
-            {"text": "Investing", "start": 13.0, "duration": 1.3},
-            {"text": "Confusing", "start": 15.0, "duration": 1.5},
-            {"text": "Compass", "start": 17.0, "duration": 1.5},
         ]
         
         # Final title derived from subtitle filename
@@ -140,7 +137,7 @@ class ESGIntro(Scene):
         
         text_group = VGroup()
         
-        # Animate key phrases (6-19s)
+        # Animate key phrases (6-19s) - KEEP ALL VISIBLE
         for i, phrase_data in enumerate(key_phrases):
             phrase = phrase_data["text"]
             target_start = phrase_data["start"]
@@ -160,8 +157,8 @@ class ESGIntro(Scene):
                 weight=BOLD,
             )
             
-            # Position on right side (stack vertically)
-            y_pos = 1.5 - (i % 3) * 1.3
+            # Position on right side (stack vertically, all visible)
+            y_pos = 2.5 - i * 0.75
             text.move_to(RIGHT * right_x + UP * y_pos)
             
             # Write stroke by stroke
@@ -170,15 +167,8 @@ class ESGIntro(Scene):
             
             text_group.add(text)
             current_time = target_start + write_time
-            
-            # Fade out older texts to keep screen clean (keep last 2 visible)
-            if len(text_group) > 2:
-                old_text = text_group[0]
-                self.play(FadeOut(old_text, run_time=0.3))
-                text_group.remove(old_text)
-                current_time += 0.3
         
-        # Clear all remaining phrases before final title
+        # Clear all phrases before final title
         if len(text_group) > 0:
             self.play(*[FadeOut(t, run_time=0.4) for t in text_group])
             current_time += 0.4
@@ -190,16 +180,22 @@ class ESGIntro(Scene):
             current_time = 22.0
         
         # Show final title - write stroke by stroke (22-24s)
-        final_text = Text(
-            final_title,
-            color=RED,
-            font_size=62,
-            weight=BOLD,
-        )
-        final_text.move_to(RIGHT * right_x)
+        # Break title into lines with different colors, fonts, and positions for visual interest
+        line1 = Text("ESG:", color=GREEN, font_size=68, weight=BOLD, font="Sans")
+        line2 = Text("A Compass", color=RED, font_size=58, weight=LIGHT, font="Sans", slant=ITALIC)
+        line3 = Text("Without Direction", color=PURPLE, font_size=52, weight=BOLD, font="Sans")
         
-        self.play(Write(final_text, run_time=2.0))
-        current_time += 2.0
+        # Position each line with offset for dynamic look
+        line1.move_to(RIGHT * right_x + UP * 1.4 + LEFT * 0.2)
+        line2.move_to(RIGHT * right_x + UP * 0.2 + RIGHT * 0.3)
+        line3.move_to(RIGHT * right_x + DOWN * 1.2 + LEFT * 0.1)
+        
+        # Write each line stroke by stroke
+        self.play(Write(line1, run_time=0.65))
+        self.play(Write(line2, run_time=0.65))
+        self.play(Write(line3, run_time=0.7))
+        
+        current_time = 24.0
         
         # Stay with final title for 2 seconds (24-26s)
         self.wait(2.0)
