@@ -51,7 +51,7 @@ pip install moviepy pillow
 ## Step 3 — Generate intro clip
 
 ```bash
-python "C:/Users/lswht/intro_gen.py" "<image_path>"
+python "C:/Users/lswht/.claude/commands/intro-gen/intro_gen.py" "<image_path>"
 ```
 
 Title is auto-read from `.social.txt`. Output: `<image_base>_intro.mp4`
@@ -86,4 +86,4 @@ Save as `<video_base>_with_intro.mp4` alongside the original video.
 - Intro duration ≈ 1.5s fade + 0.45s per word + 1.5s hold
 - Script config (in `intro_gen.py`): `WORD_INTERVAL`, `OVERLAY_ALPHA`, `WORD_COLORS`, `FONT_CANDIDATES`
 - No audio in intro clip
-- `intro_gen.py` is at `C:/Users/lswht/intro_gen.py`
+- `intro_gen.py` is at `C:/Users/lswht/.claude/commands/intro-gen/intro_gen.py`

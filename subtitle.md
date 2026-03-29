@@ -47,7 +47,7 @@ winget install --id Gyan.FFmpeg -e --accept-source-agreements --accept-package-a
 ## Step 3 — Run subtitle generation in background
 
 ```bash
-cd "<video_directory>" && PYTHONUTF8=1 python "C:/Users/lswht/subtitle_gen.py" "<video_path>" 2>&1
+cd "<video_directory>" && PYTHONUTF8=1 python "C:/Users/lswht/.claude/commands/subtitle/subtitle_gen.py" "<video_path>" 2>&1
 ```
 
 Wait for completion. The script outputs:

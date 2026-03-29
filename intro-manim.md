@@ -62,7 +62,7 @@ pip install manim
 Run from the directory containing the image so output lands nearby:
 
 ```bash
-cd "<image_directory>" && IMAGE_PATH="<image_path>" TITLE="<title>" SRT_PATH="<srt_path_or_empty>" manim -qh "C:/Users/lswht/intro_manim.py" <SceneName> 2>&1
+cd "<image_directory>" && IMAGE_PATH="<image_path>" TITLE="<title>" SRT_PATH="<srt_path_or_empty>" manim -qh "C:/Users/lswht/.claude/commands/intro-manim/intro_manim.py" <SceneName> 2>&1
 ```
 
 - `IMAGE_PATH` — absolute path to the cover image
@@ -74,7 +74,7 @@ Output: `<image_directory>/media/videos/intro_manim/1080p60/<SceneName>.mp4`
 
 **Quick preview first:**
 ```bash
-cd "<image_directory>" && IMAGE_PATH="<image_path>" TITLE="<title>" manim -ql "C:/Users/lswht/intro_manim.py" <SceneName> 2>&1
+cd "<image_directory>" && IMAGE_PATH="<image_path>" TITLE="<title>" manim -ql "C:/Users/lswht/.claude/commands/intro-manim/intro_manim.py" <SceneName> 2>&1
 ```
 
 ---
@@ -123,4 +123,4 @@ rm intro_reenc.mp4 notebooklm_trimmed.mp4 concat_list.txt
 - Config in `intro_manim.py`: `COLORS`, `FONT_SIZES`, `WORD_INTERVAL` env var
 - MiKTeX must be installed for Manim text rendering on Windows
 - First run downloads font/LaTeX cache — subsequent runs are faster
-- `intro_manim.py` is at `C:/Users/lswht/intro_manim.py`
+- `intro_manim.py` is at `C:/Users/lswht/.claude/commands/intro-manim/intro_manim.py`
