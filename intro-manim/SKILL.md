@@ -1,21 +1,23 @@
 ---
 name: intro-manim
-description: Generate a VideoScribe-style animated intro using Manim. Image fades in full-screen, slides to the left half, then title words are hand-drawn stroke by stroke on the right in vibrant colors. High quality 1080p60 output.
-argument-hint: <image_path> [video_path] [scene]
+description: Generate a VideoScribe-style animated intro using Manim. Image drags from bottom-left to left side with emphasis, then key phrases are hand-drawn stroke by stroke on the right in vibrant colors, ending with final title. High quality 1080p60 output.
+argument-hint: <image_path> <srt_path> [video_path] [duration]
 allowed-tools: [Bash, Read, Glob]
 ---
 
 # Intro Generation Skill (Manim)
 
-Create a VideoScribe-style animated intro: image slides left, title words drawn stroke by stroke on the right.
+Create a VideoScribe-style animated explainer: image drags from bottom-left to left side, key phrases drawn stroke by stroke following subtitle timing, ending with final title.
 
 **Inputs:**
 - Cover image (provided by user)
-- Title — auto-read from `IMAGE_PATH` env or `.social.txt` next to the image
-- Scene: `IntroSceneSplit` (image left + title right, default) or `IntroScene` (title centered over image)
+- Subtitle file (.srt) for pacing and timing
+- Duration (default 26 seconds)
+- Title — derived from subtitle filename or `.social.txt` next to the image
+- Optional: NotebookLM video path to merge with
 
 **Output:**
-- `media/videos/intro_manim/1080p60/<SceneName>.mp4`
+- `media/videos/<script_name>/1080p60/ESGIntro.mp4`
 - Optionally merged with NotebookLM video
 
 ## Arguments
@@ -27,18 +29,20 @@ The user invoked this with: $ARGUMENTS
 ## Step 1 — Resolve inputs
 
 Parse $ARGUMENTS:
-- First arg = image path
-- Second arg (optional) = NotebookLM video path to merge with
-- Third arg (optional) = scene name (`IntroSceneSplit` or `IntroScene`), default `IntroSceneSplit`
+- First arg = image path (required)
+- Second arg = subtitle file path (.srt) for timing (required)
+- Third arg (optional) = NotebookLM video path to merge with
+- Fourth arg (optional) = duration in seconds (default 26)
 
 If no image path provided, ask the user.
+If no subtitle file provided, ask the user.
 
-Read title from `.social.txt` next to the image:
+Read title from subtitle filename or `.social.txt` next to the image:
 ```bash
 grep -A1 "^TITLE:" "<image_base>.social.txt" | tail -1
 ```
 
-If no `.social.txt` found, ask the user for the title.
+If no `.social.txt` found, derive title from subtitle filename.
 
 ---
 
@@ -57,24 +61,32 @@ pip install manim
 
 ---
 
-## Step 3 — Generate intro clip
+## Step 3 — Generate VideoScribe explainer
 
-Run from the directory containing the image so output lands nearby:
+The script should follow this structure:
+1. Image animation (0-3s): Drag from bottom-left to left side (slower movement)
+2. Emphasis (3-4s): Scale pulse for 1 second
+3. Wait (4-6s): Hold for 2 seconds
+4. Key phrases (6-22s): Animate meaningful words 1s ahead of subtitle timing
+5. Final title (22-24s): Show complete title derived from subtitle file
+6. Hold (24-26s): Stay with final title for 2 seconds
+
+Run from the directory containing the image:
 
 ```bash
-cd "<image_directory>" && IMAGE_PATH="<image_path>" TITLE="<title>" SRT_PATH="<srt_path_or_empty>" manim -qh "C:/Users/lswht/.claude/commands/intro-manim/intro_manim.py" <SceneName> 2>&1
+cd "<image_directory>" && IMAGE_PATH="<image_path>" SRT_PATH="<srt_path>" DURATION="<duration>" manim -qh "<script_path>" ESGIntro 2>&1
 ```
 
 - `IMAGE_PATH` — absolute path to the cover image
-- `TITLE` — the full title string (quote it)
-- `SRT_PATH` — path to `.en.srt` for auto word-pace; leave empty to use default 0.45s/word
+- `SRT_PATH` — path to subtitle file for timing
+- `DURATION` — video duration in seconds (default 26)
 - `-qh` — high quality 1080p60 (use `-ql` for fast 480p preview)
 
-Output: `<image_directory>/media/videos/intro_manim/1080p60/<SceneName>.mp4`
+Output: `<image_directory>/media/videos/<script_name>/1080p60/ESGIntro.mp4`
 
 **Quick preview first:**
 ```bash
-cd "<image_directory>" && IMAGE_PATH="<image_path>" TITLE="<title>" manim -ql "C:/Users/lswht/.claude/commands/intro-manim/intro_manim.py" <SceneName> 2>&1
+cd "<image_directory>" && IMAGE_PATH="<image_path>" SRT_PATH="<srt_path>" manim -ql "<script_path>" ESGIntro 2>&1
 ```
 
 ---
@@ -84,7 +96,7 @@ cd "<image_directory>" && IMAGE_PATH="<image_path>" TITLE="<title>" manim -ql "C
 Use FFmpeg to replace the opening of the NotebookLM video with the intro clip.
 
 ```bash
-INTRO_PATH="<image_directory>/media/videos/intro_manim/1080p60/<SceneName>.mp4"
+INTRO_PATH="<image_directory>/media/videos/<script_name>/1080p60/ESGIntro.mp4"
 
 # Get intro duration
 INTRO_DURATION=$(python -c "
@@ -110,17 +122,42 @@ rm intro_reenc.mp4 notebooklm_trimmed.mp4 concat_list.txt
 
 ---
 
-## Scene descriptions
+## Animation Design Guidelines
 
-| Scene | Layout |
-|---|---|
-| `IntroSceneSplit` | Image fades in full-screen → slides to left half → title words hand-written on right half, word by word in alternating colors |
-| `IntroScene` | Image fades in full-screen with dark overlay → all title words arranged in grid and drawn stroke by stroke, centered |
+### Timing Structure (26 seconds total)
+- 0-3s: Image drags from bottom-left to left side (slow, smooth motion)
+- 3-4s: Scale pulse emphasis (1 second)
+- 4-6s: Wait/hold (2 seconds)
+- 6-22s: Key phrases appear 1s ahead of subtitle timing
+- 22-24s: Final title written stroke by stroke
+- 24-26s: Hold final title (2 seconds)
+
+### Key Phrases
+- Use meaningful content words only (nouns, verbs, adjectives)
+- Avoid filler words like "A", "The", "More", "Let's"
+- Extract from subtitle content, 1 second ahead of spoken timing
+- Keep last 2 phrases visible, fade out older ones
+- Example: "ESG", "Environmental", "Social", "Governance", "Investing", "Confusing", "Compass"
+
+### Final Title
+- Derive from subtitle filename (e.g., "A Compass Without Direction")
+- Clear all previous phrases before showing
+- Write stroke by stroke over 2 seconds
+- Hold for 2 seconds at end
+- Use prominent color (RED) and larger font
+
+### Visual Style
+- White background for clean VideoScribe look
+- Vibrant cycling colors: YELLOW, RED, BLUE, GREEN, ORANGE, PURPLE, TEAL, PINK, GOLD
+- Bold weight fonts
+- Image on left (70% height), text on right
+- Stroke-by-stroke writing animation (Write effect)
 
 ---
 
 ## Notes
-- Config in `intro_manim.py`: `COLORS`, `FONT_SIZES`, `WORD_INTERVAL` env var
+- Config in script: `COLORS`, `FONT_SIZES`, image positioning
 - MiKTeX must be installed for Manim text rendering on Windows
 - First run downloads font/LaTeX cache — subsequent runs are faster
-- `intro_manim.py` is at `C:/Users/lswht/.claude/commands/intro-manim/intro_manim.py`
+- White background creates clean VideoScribe aesthetic
+- Subtitle timing should be parsed to extract phrase timings

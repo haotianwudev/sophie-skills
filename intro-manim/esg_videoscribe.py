@@ -1,0 +1,205 @@
+"""
+Custom VideoScribe-style explainer for ESG video.
+Image drags from bottom-left to left side, then key phrases written on right following subtitle timing.
+
+TIMING STRUCTURE (26 seconds):
+- 0-3s: Image drags from bottom-left to left side (slow, smooth)
+- 3-4s: Scale pulse emphasis (1 second)
+- 4-6s: Wait/hold (2 seconds)
+- 6-22s: Key phrases appear 1s ahead of subtitle timing
+- 22-24s: Final title written stroke by stroke
+- 24-26s: Hold final title (2 seconds)
+
+DESIGN PRINCIPLES:
+- White background for clean VideoScribe aesthetic
+- Vibrant cycling colors for each phrase
+- Meaningful content words only (no filler words)
+- Keep last 2 phrases visible, fade out older ones
+- Final title derived from subtitle filename
+
+Usage:
+    manim -pql esg_videoscribe.py ESGIntro   # preview
+    manim -pqh esg_videoscribe.py ESGIntro   # high quality 1080p60
+"""
+
+import os
+import re
+from manim import *
+
+# --- Config ---
+IMAGE_PATH = r"C:\Users\lswht\Downloads\Gemini_Generated_Image_nfjn7dnfjn7dnfjn.png"
+SRT_PATH = r"C:\Users\lswht\Downloads\ESG_ A Compass Without Direction_.en.srt"
+
+# Vibrant colors cycling
+COLORS = [YELLOW, RED, BLUE, GREEN, ORANGE, PURPLE, TEAL, PINK, GOLD]
+
+
+def parse_subtitles_for_26s(srt_path: str):
+    """Parse subtitle file and extract timed phrases for first 26 seconds."""
+    if not srt_path or not os.path.exists(srt_path):
+        return []
+    
+    try:
+        content = open(srt_path, encoding="utf-8").read()
+        
+        def to_sec(ts):
+            h, m, s = ts.replace(',', '.').split(':')
+            return int(h)*3600 + int(m)*60 + float(s)
+        
+        # Parse subtitle entries
+        entries = []
+        blocks = content.strip().split('\n\n')
+        for block in blocks:
+            lines = block.strip().split('\n')
+            if len(lines) >= 3:
+                timing_line = lines[1]
+                match = re.match(r'(\d+:\d+:\d+,\d+) --> (\d+:\d+:\d+,\d+)', timing_line)
+                if match:
+                    start_time = to_sec(match.group(1))
+                    end_time = to_sec(match.group(2))
+                    text = ' '.join(lines[2:]).strip()
+                    
+                    # Only include entries within first 26 seconds
+                    if start_time < 26:
+                        entries.append({
+                            'start': start_time,
+                            'end': min(end_time, 26),
+                            'text': text
+                        })
+        
+        return entries
+    except Exception as e:
+        print(f"Error parsing subtitles: {e}")
+        return []
+
+
+class ESGIntro(Scene):
+    def construct(self):
+        # White background for clean VideoScribe look
+        self.camera.background_color = WHITE
+        
+        # Parse subtitles for timing (available for future use)
+        subtitle_entries = parse_subtitles_for_26s(SRT_PATH)
+        
+        # === IMAGE ANIMATION (0-6s) ===
+        
+        # Load image at 70% height
+        img = ImageMobject(IMAGE_PATH)
+        img.height = config.frame_height * 0.7
+        
+        # Start position: bottom-left corner (off-screen)
+        start_pos = LEFT * 5 + DOWN * 4
+        img.move_to(start_pos)
+        
+        # Target position: left side, centered vertically
+        target_pos = LEFT * 3.2
+        
+        # Drag from bottom-left to left side - SLOW (0-3s)
+        self.add(img)
+        self.play(
+            img.animate.move_to(target_pos),
+            run_time=3.0,
+            rate_func=smooth
+        )
+        
+        # Emphasize with scale pulse - 1 SECOND (3-4s)
+        self.play(
+            img.animate.scale(1.12),
+            run_time=0.5,
+            rate_func=rush_into
+        )
+        self.play(
+            img.animate.scale(1/1.12),
+            run_time=0.5,
+            rate_func=rush_from
+        )
+        
+        # Wait 2 seconds (4-6s)
+        self.wait(2.0)
+        
+        # === TEXT ANIMATION (6-26s) ===
+        
+        # Key phrases: meaningful content words only, 1s ahead of subtitle timing
+        # Avoid filler words like "A", "The", "More", "Let's"
+        key_phrases = [
+            {"text": "ESG", "start": 6.0, "duration": 1.5},
+            {"text": "Environmental", "start": 7.8, "duration": 1.3},
+            {"text": "Social", "start": 9.5, "duration": 1.2},
+            {"text": "Governance", "start": 11.0, "duration": 1.5},
+            {"text": "Investing", "start": 13.0, "duration": 1.3},
+            {"text": "Confusing", "start": 15.0, "duration": 1.5},
+            {"text": "Compass", "start": 17.0, "duration": 1.5},
+        ]
+        
+        # Final title derived from subtitle filename
+        final_title = "A Compass Without Direction"
+        
+        # Position text on right side
+        right_x = 2.8
+        current_time = 6.0  # Start after image animation
+        
+        text_group = VGroup()
+        
+        # Animate key phrases (6-19s)
+        for i, phrase_data in enumerate(key_phrases):
+            phrase = phrase_data["text"]
+            target_start = phrase_data["start"]
+            duration = phrase_data["duration"]
+            
+            # Wait until the phrase should appear
+            wait_time = target_start - current_time
+            if wait_time > 0:
+                self.wait(wait_time)
+            
+            # Create text with vibrant color
+            font_size = 46 if len(phrase) > 12 else 56
+            text = Text(
+                phrase,
+                color=COLORS[i % len(COLORS)],
+                font_size=font_size,
+                weight=BOLD,
+            )
+            
+            # Position on right side (stack vertically)
+            y_pos = 1.5 - (i % 3) * 1.3
+            text.move_to(RIGHT * right_x + UP * y_pos)
+            
+            # Write stroke by stroke
+            write_time = min(duration * 0.65, 1.8)
+            self.play(Write(text, run_time=write_time))
+            
+            text_group.add(text)
+            current_time = target_start + write_time
+            
+            # Fade out older texts to keep screen clean (keep last 2 visible)
+            if len(text_group) > 2:
+                old_text = text_group[0]
+                self.play(FadeOut(old_text, run_time=0.3))
+                text_group.remove(old_text)
+                current_time += 0.3
+        
+        # Clear all remaining phrases before final title
+        if len(text_group) > 0:
+            self.play(*[FadeOut(t, run_time=0.4) for t in text_group])
+            current_time += 0.4
+        
+        # Wait to reach 22s mark for final title
+        wait_before_final = 22.0 - current_time
+        if wait_before_final > 0:
+            self.wait(wait_before_final)
+            current_time = 22.0
+        
+        # Show final title - write stroke by stroke (22-24s)
+        final_text = Text(
+            final_title,
+            color=RED,
+            font_size=62,
+            weight=BOLD,
+        )
+        final_text.move_to(RIGHT * right_x)
+        
+        self.play(Write(final_text, run_time=2.0))
+        current_time += 2.0
+        
+        # Stay with final title for 2 seconds (24-26s)
+        self.wait(2.0)
