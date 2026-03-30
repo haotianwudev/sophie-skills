@@ -13,10 +13,11 @@ TIMING STRUCTURE (26 seconds):
 DESIGN PRINCIPLES:
 - White background for clean VideoScribe aesthetic
 - Vibrant cycling colors for each phrase
-- Meaningful content words only (no filler words)
+- Meaningful content words and engaging questions
 - All phrases stay visible on screen (stacked vertically)
 - Final title includes "ESG:" at the top with three lines total
 - Each title line has different color (GREEN, RED, PURPLE), font style, and position offset
+- Longer title lines use smaller fonts (52pt for "Without Direction")
 
 Usage:
     manim -pql esg_videoscribe.py ESGIntro   # preview
@@ -121,11 +122,16 @@ class ESGIntro(Scene):
         # === TEXT ANIMATION (6-26s) ===
         
         # Key phrases: meaningful content words only, 1s ahead of subtitle timing
+        # Show phrases until 21s (1s before final title at 22s)
         key_phrases = [
             {"text": "ESG", "start": 6.0, "duration": 1.5},
             {"text": "Environmental", "start": 7.8, "duration": 1.3},
             {"text": "Social", "start": 9.5, "duration": 1.2},
             {"text": "Governance", "start": 11.0, "duration": 1.5},
+            {"text": "A Great Guide?", "start": 13.0, "duration": 1.5},
+            {"text": "Investing", "start": 15.0, "duration": 1.3},
+            {"text": "More Confusing?", "start": 17.0, "duration": 1.5},
+            {"text": "A Compass?", "start": 19.0, "duration": 1.5},
         ]
         
         # Final title derived from subtitle filename

@@ -133,11 +133,11 @@ rm intro_reenc.mp4 notebooklm_trimmed.mp4 concat_list.txt
 - 24-26s: Hold final title (2 seconds)
 
 ### Key Phrases
-- Use meaningful content words only (nouns, verbs, adjectives)
-- Avoid filler words like "A", "The", "More", "Let's"
+- Use meaningful content words and engaging questions
+- Include questions to create narrative tension (e.g., "A Great Guide?", "More Confusing?", "A Compass?")
 - Extract from subtitle content, 1 second ahead of spoken timing
 - All phrases stay visible on screen, stacked vertically
-- Example: "ESG", "Environmental", "Social", "Governance", "Investing", "Confusing", "Compass"
+- Example: "ESG", "Environmental", "Social", "Governance", "A Great Guide?", "Investing", "More Confusing?", "A Compass?"
 
 ### Visual Style
 - White background for clean VideoScribe look
