@@ -1,9 +1,9 @@
 """
 Custom VideoScribe-style explainer for ESG video.
-Image drags from bottom-left to left side, then key phrases written on right following subtitle timing.
+Video/Image drags from bottom-left to left side, then key phrases written on right following subtitle timing.
 
 TIMING STRUCTURE (26 seconds):
-- 0-3s: Image drags from bottom-left to left side (slow, smooth)
+- 0-3s: Video/Image drags from bottom-left to left side (slow, smooth)
 - 3-4s: Scale pulse emphasis (1 second)
 - 4-6s: Wait/hold (2 seconds)
 - 6-22s: Key phrases appear 1s ahead of subtitle timing
@@ -27,10 +27,19 @@ Usage:
 import os
 import re
 from manim import *
+try:
+    from manim_voiceover import VoiceoverScene
+    from manim_voiceover.services.recorder import RecorderService
+except:
+    pass
 
 # --- Config ---
 IMAGE_PATH = r"C:\Users\lswht\Downloads\Gemini_Generated_Image_nfjn7dnfjn7dnfjn.png"
+VIDEO_PATH = r"C:\Users\lswht\Downloads\Video_Generation_From_Prompt (1).mp4"
 SRT_PATH = r"C:\Users\lswht\Downloads\ESG_ A Compass Without Direction_.en.srt"
+
+# Set to True to use video instead of image (requires FFmpeg post-processing)
+USE_VIDEO = False
 
 # Vibrant colors cycling
 COLORS = [YELLOW, RED, BLUE, GREEN, ORANGE, PURPLE, TEAL, PINK, GOLD]
@@ -83,35 +92,52 @@ class ESGIntro(Scene):
         # Parse subtitles for timing (available for future use)
         subtitle_entries = parse_subtitles_for_26s(SRT_PATH)
         
-        # === IMAGE ANIMATION (0-6s) ===
+        # === IMAGE/VIDEO ANIMATION (0-6s) ===
         
-        # Load image at 80% height (slightly larger)
-        img = ImageMobject(IMAGE_PATH)
-        img.height = config.frame_height * 0.8
+        # Load video or image at 80% height (slightly larger)
+        # Note: Manim doesn't support video playback in scenes directly
+        # We'll extract first frame from video or use image
+        if USE_VIDEO:
+            # For video, we'll use FFmpeg to extract a frame and use it as image
+            import subprocess
+            frame_path = "temp_video_frame.png"
+            try:
+                subprocess.run([
+                    "ffmpeg", "-i", VIDEO_PATH, "-vframes", "1", 
+                    "-y", frame_path
+                ], capture_output=True, check=True)
+                media = ImageMobject(frame_path)
+            except:
+                # Fallback to image if video extraction fails
+                media = ImageMobject(IMAGE_PATH)
+            media.height = config.frame_height * 0.8
+        else:
+            media = ImageMobject(IMAGE_PATH)
+            media.height = config.frame_height * 0.8
         
         # Start position: bottom-left corner (off-screen)
         start_pos = LEFT * 5 + DOWN * 4
-        img.move_to(start_pos)
+        media.move_to(start_pos)
         
         # Target position: left side, centered vertically
         target_pos = LEFT * 3.2
         
         # Drag from bottom-left to left side - SLOW (0-3s)
-        self.add(img)
+        self.add(media)
         self.play(
-            img.animate.move_to(target_pos),
+            media.animate.move_to(target_pos),
             run_time=3.0,
             rate_func=smooth
         )
         
         # Emphasize with scale pulse - 1 SECOND (3-4s)
         self.play(
-            img.animate.scale(1.12),
+            media.animate.scale(1.12),
             run_time=0.5,
             rate_func=rush_into
         )
         self.play(
-            img.animate.scale(1/1.12),
+            media.animate.scale(1/1.12),
             run_time=0.5,
             rate_func=rush_from
         )
