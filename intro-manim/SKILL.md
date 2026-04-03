@@ -1,26 +1,25 @@
 ---
 name: intro-manim
-description: Generate a VideoScribe-style animated intro using Manim. Image/video drags from bottom-left to left side with emphasis, then key phrases are hand-drawn stroke by stroke on the right in vibrant colors, ending with final title. Supports both static images and playing videos. High quality 1080p60 output.
+description: Generate a VideoScribe-style animated intro using Manim. Image/video drags from bottom-left to left side with emphasis, then 4 styled pill banners pop in on the right with GrowFromCenter + Write animation, ending with a three-line final title. Supports both static images and playing videos composited via moviepy. High quality 1080p60 output.
 argument-hint: <image_path> <srt_path> [video_path] [duration]
 allowed-tools: [Bash, Read, Glob]
 ---
 
 # Intro Generation Skill (Manim)
 
-Create a VideoScribe-style animated explainer: image/video drags from bottom-left to left side, key phrases drawn stroke by stroke following subtitle timing, ending with final title.
+Create a VideoScribe-style animated explainer: image/video drags from bottom-left to left side, 4 styled pill banners grow in on the right one by one, ending with a final title written stroke by stroke.
 
 **Inputs:**
-- Cover image (provided by user) - used for the movement animation
-- Optional: Video file to play after reaching final position
-- Subtitle file (.srt) for pacing and timing
-- Duration (default 26 seconds)
-- Title — derived from subtitle filename or `.social.txt` next to the image
+- Cover image (required) — animated on the left panel
+- Optional: Video file to play after the image reaches its position (4s mark)
+- Subtitle file (.srt) — for deriving title and key phrase content
+- Duration (default 21 seconds)
 - Optional: NotebookLM video path to merge with
 
 **Output:**
-- `media/videos/esg_videoscribe/1080p60/ESGIntro.mp4` (with static image)
-- `ESGIntro_WithPlayingVideo.mp4` (with playing video after 4s)
-- Optionally merged with NotebookLM video
+- `media/videos/<script_name>/1080p60/VideoScribeIntro.mp4` — static image version
+- `<Name>_WithVideo.mp4` — with source video playing in the left panel from 4s onward
+- Optionally merged with a NotebookLM video
 
 ## Arguments
 
@@ -32,19 +31,18 @@ The user invoked this with: $ARGUMENTS
 
 Parse $ARGUMENTS:
 - First arg = image path (required)
-- Second arg = subtitle file path (.srt) for timing (required)
-- Third arg (optional) = NotebookLM video path to merge with
-- Fourth arg (optional) = duration in seconds (default 26)
+- Second arg = subtitle file path (.srt) (required for title/phrase content)
+- Third arg (optional) = source video path to composite in left panel
+- Fourth arg (optional) = duration in seconds (default 21)
 
 If no image path provided, ask the user.
 If no subtitle file provided, ask the user.
 
-Read title from subtitle filename or `.social.txt` next to the image:
+Read title from `.social.txt` next to the image if available:
 ```bash
 grep -A1 "^TITLE:" "<image_base>.social.txt" | tail -1
 ```
-
-If no `.social.txt` found, derive title from subtitle filename.
+Otherwise derive title from subtitle filename.
 
 ---
 
@@ -52,170 +50,154 @@ If no `.social.txt` found, derive title from subtitle filename.
 
 ```bash
 manim --version 2>&1
+python -c "import moviepy; from PIL import Image; print('OK')" 2>&1
 ```
 
 If missing:
 ```bash
-pip install manim
-# Also requires MiKTeX (LaTeX) for text rendering:
+pip install manim moviepy pillow
+# MiKTeX required for Manim text rendering on Windows:
 # winget install MiKTeX.MiKTeX
 ```
 
 ---
 
-## Step 3 — Generate VideoScribe explainer
+## Step 3 — Write and run the Manim script
 
-The script follows this structure:
-1. Image animation (0-3s): Drag from bottom-left to left side (slower movement)
-2. Emphasis (3-4s): Scale pulse for 1 second
-3. Wait (4-6s): Hold for 2 seconds
-4. Key phrases (6-22s): Animate meaningful words 1s ahead of subtitle timing
-5. Final title (22-24s): Show complete title derived from subtitle file
-6. Hold (24-26s): Stay with final title for 2 seconds
+Base the script on `intro_manim.py` in this folder. Key things to customise:
 
-**Customize the script:**
-- Edit `key_phrases` array with your content words/questions
-- Edit final title lines (line1, line2, line3) with your title text
-- Adjust colors, font sizes, and positions as needed
+1. **`IMAGE_PATH`** — set to the user's image
+2. **`phrases`** — 4 tuples of `("Text", "#hexcolor")` derived from subtitle content:
+   - Use engaging questions and key concepts from the transcript
+   - Recommended colors: `#C0392B` (red), `#1A5276` (navy), `#1E8449` (green), `#6C3483` (purple)
+3. **Final title** — 3 lines, derive from the video title / social.txt
 
-Run the generation:
+**Script structure (21 seconds):**
+- 0–3s: Image drags from bottom-left → left panel (smooth)
+- 3–4s: Scale pulse emphasis
+- 4–5.5s: Hold
+- 5.5–15.5s: 4 pill banners, each 1.4s grow-in + 1.1s hold = 2.5s each
+- 15.5–16s: All pills fade out
+- 16–17s: Pause
+- 17–19s: Final title written line by line
+- 19–21s: Hold
 
-```bash
-manim -qh intro_manim.py VideoScribeIntro 2>&1
+**Pill banner animation pattern (critical — do NOT use `pill.animate.scale(1)` on a zero-scaled object):**
+```python
+self.play(
+    GrowFromCenter(pill),       # pill grows from centre (0 → full size)
+    Write(label, run_time=1.2), # text writes simultaneously
+    run_time=1.4,
+    rate_func=smooth,
+)
 ```
 
-Or with environment variables:
-
+Save the script alongside the image file (or in a working directory), then run:
 ```bash
-IMAGE_PATH="path/to/image.png" SRT_PATH="path/to/subs.srt" manim -qh intro_manim.py VideoScribeIntro
+cd "<image_directory>"
+manim -ql <script_name>.py VideoScribeIntro 2>&1   # quick 480p preview
+manim -qh <script_name>.py VideoScribeIntro 2>&1   # full 1080p60
 ```
 
-- `-qh` — high quality 1080p60 (use `-ql` for fast 480p preview)
-
-Output: `media/videos/intro_manim/1080p60/VideoScribeIntro.mp4`
-
-**Quick preview first:**
-```bash
-manim -ql intro_manim.py VideoScribeIntro 2>&1
-```
+Output: `media/videos/<script_name>/1080p60/VideoScribeIntro.mp4`
 
 ---
 
-## Step 4 — Add playing video (optional)
+## Step 4 — Composite source video (if video path provided)
 
-If you want the actual video to play after the movement animation (starting at 4s):
-
-**Create a video alignment script** (or use the example from `esg_example/fix_video_alignment.py`):
+Use `fix_video_alignment.py` pattern (see `market_crash_example/` or `esg_example/`):
 
 ```python
-# fix_video_alignment.py
 from moviepy import VideoFileClip, CompositeVideoClip, concatenate_videoclips
 from PIL import Image
-import os
 
-VIDEO_PATH = r"path/to/your/video.mp4"
-IMAGE_PATH = r"path/to/your/image.png"
-MANIM_OUTPUT = r"media/videos/intro_manim/1080p60/VideoScribeIntro.mp4"
-OUTPUT_PATH = "VideoScribeIntro_WithPlayingVideo.mp4"
+VIDEO_PATH   = r"path/to/source.mp4"
+IMAGE_PATH   = r"path/to/image.png"
+MANIM_OUTPUT = r"media/videos/<script>/1080p60/VideoScribeIntro.mp4"
+OUTPUT_PATH  = "Output_WithVideo.mp4"
 
-# ... (see esg_example/fix_video_alignment.py for full implementation)
+PLAY_START    = 4                        # video starts at 4s (after movement)
+TOTAL_INTRO   = 21                       # total intro duration
+PLAY_DURATION = TOTAL_INTRO - PLAY_START # 17 seconds of source video
+
+# Calculate exact Manim image position
+img = Image.open(IMAGE_PATH)
+frame_h, frame_w = 1080, 1920
+target_h = int(frame_h * 0.8)
+target_w = int(img.width * (target_h / img.height))
+pixels_per_unit = frame_w / 14
+img_center_x = frame_w / 2 + (-3.2 * pixels_per_unit)
+x_pos = int(img_center_x - target_w / 2)
+y_pos = int((frame_h - target_h) / 2)
 ```
 
-Run it:
-
+Run:
 ```bash
-python fix_video_alignment.py
+PYTHONUTF8=1 python fix_video_alignment.py 2>&1
 ```
-
-This script:
-- Calculates exact image dimensions and position from Manim
-- Loops the source video to fill 22 seconds (26s - 4s animation)
-- Resizes video to match image dimensions exactly
-- Composites video over the animation starting at 4 seconds
-- Output: `VideoScribeIntro_WithPlayingVideo.mp4`
-
-**Requirements:**
-- moviepy installed: `pip install moviepy`
-- Video file path configured in script
 
 ---
 
-## Step 5 — Merge with NotebookLM video (if video path provided)
-
-Use FFmpeg to replace the opening of the NotebookLM video with the intro clip.
+## Step 5 — Merge with NotebookLM video (optional)
 
 ```bash
-INTRO_PATH="<image_directory>/media/videos/<script_name>/1080p60/ESGIntro.mp4"
+INTRO="path/to/VideoScribeIntro.mp4"
+NLM="path/to/notebooklm_video.mp4"
+BASE="OutputName"
 
-# Get intro duration
-INTRO_DURATION=$(python -c "
-from moviepy import VideoFileClip
-c = VideoFileClip('$INTRO_PATH')
-print(round(c.duration, 2))
-c.close()
-")
-
-# Re-encode intro to match NotebookLM video specs (30fps, AAC audio stream)
-ffmpeg -i "$INTRO_PATH" -vf "fps=30,scale=1920:1080" -c:v libx264 -crf 18 -preset fast -an intro_reenc.mp4
-
-# Trim NotebookLM video: skip its opening equal to intro duration
-ffmpeg -i "<notebooklm_video>" -ss $INTRO_DURATION -c copy notebooklm_trimmed.mp4
-
-# Concatenate
-printf "file '%s'\nfile 'notebooklm_trimmed.mp4'\n" "$(pwd)/intro_reenc.mp4" > concat_list.txt
-ffmpeg -f concat -safe 0 -i concat_list.txt -c copy "<video_base>_with_intro.mp4"
-
-# Cleanup
-rm intro_reenc.mp4 notebooklm_trimmed.mp4 concat_list.txt
+DURATION=$(python -c "from moviepy import VideoFileClip; c=VideoFileClip('$INTRO'); print(round(c.duration,2)); c.close()")
+ffmpeg -i "$INTRO" -vf "fps=30,scale=1920:1080" -c:v libx264 -crf 18 -preset fast -an intro_reenc.mp4
+ffmpeg -i "$NLM" -ss $DURATION -c copy nlm_trimmed.mp4
+printf "file '%s'\nfile 'nlm_trimmed.mp4'\n" "$(pwd)/intro_reenc.mp4" > concat.txt
+ffmpeg -f concat -safe 0 -i concat.txt -c copy "${BASE}_with_intro.mp4"
+rm intro_reenc.mp4 nlm_trimmed.mp4 concat.txt
 ```
 
 ---
 
 ## Animation Design Guidelines
 
-### Timing Structure (26 seconds total)
-- 0-3s: Image drags from bottom-left to left side (slow, smooth motion)
-- 3-4s: Scale pulse emphasis (1 second)
-- 4-6s: Wait/hold (2 seconds)
-- 6-22s: Key phrases appear 1s ahead of subtitle timing
-- 22-24s: Final title written stroke by stroke
-- 24-26s: Hold final title (2 seconds)
+### Timing Structure (21 seconds default)
+- 0–3s: Image drags from bottom-left to left side (smooth)
+- 3–4s: Scale pulse emphasis
+- 4–5.5s: Hold
+- 5.5–15.5s: 4 pill banners, 2.5s each
+- 15.5–16s: Pills fade out
+- 16–17s: Pause
+- 17–19s: Final title (3 lines written stroke by stroke)
+- 19–21s: Hold
 
-### Key Phrases
-- Use meaningful content words and engaging questions
-- Include questions to create narrative tension (e.g., "A Great Guide?", "More Confusing?", "A Compass?")
-- Extract from subtitle content, 1 second ahead of spoken timing
-- All phrases stay visible on screen, stacked vertically
-- Example: "ESG", "Environmental", "Social", "Governance", "A Great Guide?", "Investing", "More Confusing?", "A Compass?"
-
-### Visual Style
-- White background for clean VideoScribe look
-- Vibrant cycling colors: YELLOW, RED, BLUE, GREEN, ORANGE, PURPLE, TEAL, PINK, GOLD
-- Bold weight fonts
-- Image/video on left (80% height), text on right
-- Stroke-by-stroke writing animation (Write effect)
-- All key phrases stay visible on screen (stacked vertically with 0.75 spacing)
-- Video support: Static image during movement (0-4s), playing video after reaching position (4-26s)
+### Pill Banners
+- 4 phrases maximum — gives each enough screen time to read
+- Use a question + 2 content points + a closing call-to-action structure
+- Colors: deep red, navy blue, forest green, deep purple (high contrast on white bg)
+- White BOLD text on colored background — high contrast, clean explainer look
+- Evenly centered around y=0: positions [1.95, 0.65, -0.65, -1.95]
+- All pills stay visible until the fade-out at 15.5s
+- **Animation**: `GrowFromCenter(pill)` + `Write(label)` simultaneously — do NOT use `pill.animate.scale()` on a zero-scaled object
 
 ### Final Title
-- Derive from subtitle filename (e.g., "ESG: A Compass Without Direction")
-- Three lines: "ESG:" (GREEN, bold, 68pt), "A Compass" (RED, italic, 58pt), "Without Direction" (PURPLE, bold, 52pt - smaller for longer text)
-- Each line has different font size and position offset for dynamic look
-- Clear all previous phrases before showing
-- Write stroke by stroke over 2 seconds
-- Hold for 2 seconds at end
+- 3 lines derived from video title
+- Colors: GREEN (bold), RED (italic), PURPLE (bold)
+- Font sizes: 72 / 54 / 52 — adjust down if text is long
+- Slight horizontal offsets per line for dynamic look
+- Written stroke by stroke over 2 seconds, held for 2 seconds
+
+### Visual Style
+- White background
+- Image on left (80% frame height, `LEFT * 3.2`)
+- Text/pills on right (`right_x = 3.2`)
+- Static image during movement (0–4s), source video composited after (4–21s)
 
 ---
 
+## Example Implementations
+- `esg_example/` — original ESG intro (plain colored text, 8 phrases)
+- `market_crash_example/` — refined version (pill banners, 4 phrases, `GrowFromCenter` fix)
+
 ## Notes
-- Main script: `intro_manim.py` with scene `VideoScribeIntro`
-- Config in script: `COLORS`, `key_phrases`, final title lines
-- Customize phrases and title text for your content
+- Always run `-ql` preview before `-qh` full render to catch errors fast
+- `PYTHONUTF8=1` prefix required on Windows for moviepy to avoid GBK encoding errors
 - MiKTeX must be installed for Manim text rendering on Windows
-- First run downloads font/LaTeX cache — subsequent runs are faster
-- White background creates clean VideoScribe aesthetic
-- Subtitle timing can be parsed to extract phrase timings
-- Video alignment: Script calculates exact Manim image dimensions and position
-- Video compositing uses moviepy for frame-perfect alignment
-- For playing video: Image used during movement (0-4s), video plays after (4-26s)
-- Example implementation available in `esg_example/` folder
+- Manim caches partial frames — if image path changes, old cache may silently be used; always verify output visually
+- `pill.animate.scale(1)` on a zero-scaled object is a no-op — use `GrowFromCenter(pill)` instead
