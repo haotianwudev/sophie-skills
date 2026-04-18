@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "notebooklm/SKILL.md",
+                "file": "sophie-brainstorm/suggested.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "SKILL"
+              "title": "suggested"
             }
           }
         ]
@@ -185,6 +185,7 @@
   },
   "active": "5142c4366ac44d72",
   "lastOpenFiles": [
+    "notebooklm/SKILL.md",
     "sophie-develop-guide/skill.md",
     "sophie-develop-guide",
     "sophie-brainstorm/SKILL.md.tmp.15476.1775445768998",
@@ -217,7 +218,6 @@
     "sophie-brainstorm/SKILL.md",
     "sophie-blog-article/SKILL.md",
     "sophie-add-to-topic/SKILL.md",
-    "notebooklm/SKILL.md",
     "intro-manim/SKILL.md"
   ]
 }

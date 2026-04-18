@@ -35,3 +35,11 @@ Do NOT re-suggest any title or topic listed here. Use this as a blocklist when g
 - "Liar's Poker" — The Original Market Structure Manual — `BOOK`, `MARCO`, `FINANCE101`
 - Statistical Arbitrage: Pairs Trading from Cointegration to Kalman Filter — `QUANT`, `AI_ML`
 - The Kelly Criterion: Optimal Position Sizing from Information Theory to Practice — `QUANT`, `FINANCE101`
+
+## 2026-04-11
+
+- Dispersion Trading: Selling Index Vol, Buying Single-Stock Vol — `OPTIONS`, `QUANT`
+- The Higher-Order Greeks: Vanna, Volga, Charm, and Color in Professional Options Books — `OPTIONS`, `QUANT`
+- Long Volatility & Tail Hedging: The Taleb Barbell in Practice — `OPTIONS`, `QUANT`, `FINANCE101`
+- VIX Futures & Options: Trading the Fear Index as a Standalone Asset — `OPTIONS`, `QUANT`
+- Delta Hedging & Gamma Scalping: The Market Maker's P&L Explained — `OPTIONS`, `QUANT`
