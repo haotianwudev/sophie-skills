@@ -43,3 +43,15 @@ Do NOT re-suggest any title or topic listed here. Use this as a blocklist when g
 - Long Volatility & Tail Hedging: The Taleb Barbell in Practice — `OPTIONS`, `QUANT`, `FINANCE101`
 - VIX Futures & Options: Trading the Fear Index as a Standalone Asset — `OPTIONS`, `QUANT`
 - Delta Hedging & Gamma Scalping: The Market Maker's P&L Explained — `OPTIONS`, `QUANT`
+
+## 2026-04-18
+
+- The AI Quant Engineer: Devin-Style SWE Agents, Wiki-Grounded Knowledge Loops, and the Autonomous R&D Stack in Finance — `AI_ML`, `QUANT`
+
+## 2026-05-01
+
+- Real-World Asset Tokenization: The $26B Infrastructure Reshaping Fixed Income — `CRYPTO`, `QUANT`
+- The Algorithmic Monoculture: How AI Adoption Creates Superlinear Systemic Risk — `AI_ML`, `QUANT`, `MARCO`
+- Strategy Decay & Factor Fragility: The Minimum Regime Performance Framework — `QUANT`
+- Q1 2026 13F Analysis: Institutional Repositioning Through the Tariff Shock — `FORM13F`, `MARCO`, `QUANT`
+- Quantum Finance: Pricing Path-Dependent Derivatives on Quantum Hardware — `QUANT`, `AI_ML`
